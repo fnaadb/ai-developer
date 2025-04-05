@@ -67,26 +67,26 @@ def initialize_kernel():
 
 async def process_message(user_input):
     logger.info(f"Processing user message: {user_input}")
-    kernel = initialize_kernel()
+    arief_kernel = initialize_kernel()
     #challenge 2
-    execution_settings = kernel.get_prompt_execution_settings_from_service_id("chat-completion")
+    execution_settings = arief_kernel.get_prompt_execution_settings_from_service_id("chat-completion")
     execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
     arguments = KernelArguments(settings=execution_settings)
 
        # Challenge 03 - Add Time Plugin
     # Placeholder for Time plugin
     # Challenge 03 - Add Time Plugin/GeoPlugin
-    kernel.add_plugin(GeoPlugin(), plugin_name="GeoCoding",)
-    kernel.add_plugin(TimePlugin(), plugin_name="Time",)
-    kernel.add_plugin(WeatherPlugin(),plugin_name="Weather",)
+    arief_kernel.add_plugin(GeoPlugin(), plugin_name="GeoCoding",)
+    arief_kernel.add_plugin(TimePlugin(), plugin_name="Time",)
+    arief_kernel.add_plugin(WeatherPlugin(),plugin_name="Weather",)
    
      
 
 
-    chat_completion_service = kernel.get_service(service_id="chat-completion")
+    chat_completion_service = arief_kernel.get_service(service_id="chat-completion")
     
     chat_history.add_user_message(user_input)
-    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings,kernel=kernel)
+    
        
 
     # chat_function = kernel.add_function(
@@ -99,9 +99,6 @@ async def process_message(user_input):
     
 
 
-    #Challenge 03 and 04 - Services Required
-    #Challenge 03 - Create Prompt Execution Settings
-    #execution_settings = kernel.get_prompt_execution_settings_from_service_id("chat_completion")
     ### 
         #Auto: Allows the AI model to choose from zero or more function(s) from the provided function(s) for invocation.
         #Required: Forces the AI model to choose one or more function(s) from the provided function(s) for invocation.
@@ -116,8 +113,21 @@ async def process_message(user_input):
 
     # Challenge 04 - Import OpenAPI Spec
     # Placeholder for OpenAPI plugin
+      # Challenge 04 - Import OpenAPI Spec
+    # Try to add the OpenAPI plugin, but continue if the server isn't available
+    try:
+        openapi = arief_kernel.add_plugin_from_openapi(
+            plugin_name="get_tasks",
+            openapi_document_path="http://127.0.0.1:8000/openapi.json",
+            execution_settings=OpenAPIFunctionExecutionParameters(
+                    enable_payload_namespacing=True,
+            )
+        )
+        logger.info("OpenAPI plugin for tasks loaded successfully")
+    except Exception as e:
+        logger.warning(f"Failed to load OpenAPI plugin: {e}. Continuing without task functionality.")
 
-
+    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings,kernel=arief_kernel)
     # Challenge 05 - Add Search Plugin
 
 
