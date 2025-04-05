@@ -1,16 +1,28 @@
 import asyncio
 import logging
 from dotenv import load_dotenv
-from semantic_kernel import kernel
+from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, OpenAITextToImage
 from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
 from semantic_kernel.connectors.openapi_plugin import OpenAPIFunctionExecutionParameters
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.functions import KernelArguments
 from openai import AzureOpenAI
+#arief
+#from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase, PromptExecutionSettings
+
+from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
+
+from plugins.time_plugin import TimePlugin
+from plugins.geo_plugin import GeoPlugin
+from plugins.weather_plugin import WeatherPlugin
+from plugins.ai_search_plugin import AiSearchPlugin
+from plugins.image_plugin import ImagePlugin
+
 
 
 #Add logger
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 load_dotenv(override=True)
 
@@ -21,9 +33,13 @@ Ask followup questions if something is unclear or more data is needed to complet
 """
 
 chat_history = ChatHistory()
+chat_history.add_system_message(system_message)
+# Initialize the kernel and add the Azure AI Foundry Chat Completion service
+#chat_completion_service : AzureChatCompletion = None
+#client : ChatCompletionClientBase = None
 
 def initialize_kernel():
-    kernel = kernel()
+    kernel = Kernel()
 
     # Add Azure AI Foundry Chat Completion
     # chat_completion_service = AzureChatCompletion(
@@ -39,6 +55,8 @@ def initialize_kernel():
     kernel.add_service(chat_completion_service)
     logger.info("Chat completion service added to the service")
 
+    #client = ChatCompletionClientBase(ai_model_id="gpt-4o")
+
 
     return kernel
 
@@ -47,23 +65,42 @@ def initialize_kernel():
 async def process_message(user_input):
     logger.info(f"Processing user message: {user_input}")
     kernel = initialize_kernel()
-    chat_function = kernel.add_function(
-        prompt="{{$chat_history}}{{$user_input}}",
-        plugin_name="ChatBot",
-        function_name="Chat"
-    )
+    chat_completion_service = kernel.get_service(service_id="chat_completion")
+    #challenge 2
+    execution_settings = OpenAIChatPromptExecutionSettings()
+    chat_history.add_user_message(user_input)
+    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings)
+       
+
+    # chat_function = kernel.add_function(
+    #     prompt="{{$chat_history}}{{$user_input}}",
+    #     plugin_name="ChatBot",
+    #     function_name="Chat"
+    # )
+    
+    
+
 
     #Challenge 03 and 04 - Services Required
     #Challenge 03 - Create Prompt Execution Settings
-    execution_settings = kernel.get_prompt_execution_settings_from_service_id("chat_completion")
-    execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-    arguments = KernelArguments(settings=execution_settings)
+    #execution_settings = kernel.get_prompt_execution_settings_from_service_id("chat_completion")
+    ### 
+        #Auto: Allows the AI model to choose from zero or more function(s) from the provided function(s) for invocation.
+        #Required: Forces the AI model to choose one or more function(s) from the provided function(s) for invocation.
+        #NoneInvoke: Instructs the AI model not to choose any function(s).
+    ###
+    #execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+    #arguments = KernelArguments(settings=execution_settings)
 
 
 
 
     # Challenge 03 - Add Time Plugin
     # Placeholder for Time plugin
+    #kernel.add_plugin(TimePlugin(), "Time")
+    #kernel.add_plugin(GeoPlugin(), "GeoCoding")
+    #kernel.add_plugin(WeatherPlugin(), "Weather")
+     
 
     # Challenge 04 - Import OpenAPI Spec
     # Placeholder for OpenAPI plugin
@@ -78,15 +115,19 @@ async def process_message(user_input):
     # Placeholder for Text To Image plugin
 
     # Start Challenge 02 - Sending a message to the chat completion service by invoking kernel
-    chat_history.add_user_message(user_input)
-    arguments["user_input"] = user_input
-    arguments["chat_history"] = chat_history
-    result = await kernel.invoke(chat_function, arguments=arguments)
-    chat_history.add_user_message(user_input)
-    chat_history.add_assistant_message(str(result))
+    """
+     chat history:users, assistants, system messages and tools   
+    """
+    # arguments = {}
+    # chat_history.add_user_message(user_input)
+    # arguments["user_input"] = user_input
+    # arguments["chat_history"] = chat_history
+    # result = await kernel.invoke(chat_function, arguments=arguments)
+    # chat_history.add_user_message(user_input)
+    # chat_history.add_assistant_message(str(result))
 
 
-    return result
+    return response
 
 def reset_chat_history():
     global chat_history
