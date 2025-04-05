@@ -12,6 +12,9 @@ from openai import AzureOpenAI
 #from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase, PromptExecutionSettings
 
 from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
+from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import (
+    AzureChatPromptExecutionSettings,
+)
 
 from plugins.time_plugin import TimePlugin
 from plugins.geo_plugin import GeoPlugin
@@ -51,7 +54,7 @@ def initialize_kernel():
 
 
     # You can do the following if you have set the necessary environment variables or created a .env file
-    chat_completion_service = AzureChatCompletion(service_id="chat_completion")
+    chat_completion_service = AzureChatCompletion(service_id="chat-completion")
     kernel.add_service(chat_completion_service)
     logger.info("Chat completion service added to the service")
 
@@ -65,16 +68,31 @@ def initialize_kernel():
 async def process_message(user_input):
     logger.info(f"Processing user message: {user_input}")
     kernel = initialize_kernel()
-    chat_completion_service = kernel.get_service(service_id="chat_completion")
     #challenge 2
-    execution_settings = OpenAIChatPromptExecutionSettings()
+    execution_settings = kernel.get_prompt_execution_settings_from_service_id("chat-completion")
+    execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+    arguments = KernelArguments(settings=execution_settings)
+
+       # Challenge 03 - Add Time Plugin
+    # Placeholder for Time plugin
+    # Challenge 03 - Add Time Plugin/GeoPlugin
+    kernel.add_plugin(GeoPlugin(), plugin_name="GeoCoding",)
+    kernel.add_plugin(TimePlugin(), plugin_name="Time",)
+    kernel.add_plugin(WeatherPlugin(),plugin_name="Weather",)
+   
+     
+
+
+    chat_completion_service = kernel.get_service(service_id="chat-completion")
+    
     chat_history.add_user_message(user_input)
-    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings)
+    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings,kernel=kernel)
        
 
     # chat_function = kernel.add_function(
     #     prompt="{{$chat_history}}{{$user_input}}",
     #     plugin_name="ChatBot",
+    
     #     function_name="Chat"
     # )
     
@@ -89,18 +107,12 @@ async def process_message(user_input):
         #Required: Forces the AI model to choose one or more function(s) from the provided function(s) for invocation.
         #NoneInvoke: Instructs the AI model not to choose any function(s).
     ###
-    #execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
-    #arguments = KernelArguments(settings=execution_settings)
+  
 
 
 
 
-    # Challenge 03 - Add Time Plugin
-    # Placeholder for Time plugin
-    #kernel.add_plugin(TimePlugin(), "Time")
-    #kernel.add_plugin(GeoPlugin(), "GeoCoding")
-    #kernel.add_plugin(WeatherPlugin(), "Weather")
-     
+ 
 
     # Challenge 04 - Import OpenAPI Spec
     # Placeholder for OpenAPI plugin
