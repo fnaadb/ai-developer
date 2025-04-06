@@ -23,7 +23,9 @@ from semantic_kernel.data import (
 @vectorstoremodel
 @dataclass
 class EmployeeHandbookModel(BaseModel):
-    chunk_id: Annotated[str, VectorStoreRecordKeyField]
+    #arief, no chunk id, replace with id as well as parent_id is optional
+    #chunk_id: Annotated[str, VectorStoreRecordKeyField]
+    id: Annotated[str, VectorStoreRecordKeyField]
     parent_id: Annotated[str | None, VectorStoreRecordDataField()] = None
     content: Annotated[str, VectorStoreRecordDataField()]
     title: Annotated[str, VectorStoreRecordDataField()]
