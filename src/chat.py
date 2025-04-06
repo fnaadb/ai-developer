@@ -8,6 +8,12 @@ from semantic_kernel.connectors.openapi_plugin import OpenAPIFunctionExecutionPa
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.functions import KernelArguments
 from openai import AzureOpenAI
+from semantic_kernel.connectors.ai.azure_ai_inference import AzureTextEmbedding
+#from semantic_kernel.template_engine import PromptTemplateConfig,InputVariable
+
+
+
+import os
 #arief
 #from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase, PromptExecutionSettings
 
@@ -83,7 +89,7 @@ async def process_message(user_input):
      
 
 
-    chat_completion_service = arief_kernel.get_service(service_id="chat-completion")
+    #chat_completion_service = arief_kernel.get_service(service_id="chat-completion")
     
     chat_history.add_user_message(user_input)
     
@@ -112,9 +118,6 @@ async def process_message(user_input):
  
 
     # Challenge 04 - Import OpenAPI Spec
-    # Placeholder for OpenAPI plugin
-      # Challenge 04 - Import OpenAPI Spec
-    # Try to add the OpenAPI plugin, but continue if the server isn't available
     try:
         openapi = arief_kernel.add_plugin_from_openapi(
             plugin_name="get_tasks",
@@ -127,8 +130,20 @@ async def process_message(user_input):
     except Exception as e:
         logger.warning(f"Failed to load OpenAPI plugin: {e}. Continuing without task functionality.")
 
-    response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings,kernel=arief_kernel)
-    # Challenge 05 - Add Search Plugin
+    #Challenge 05 - Add Search Plugin
+    #Challenge 05 - Add embedding Service
+    embedding_service = AzureTextEmbedding(
+                api_key = os.getenv("AZURE_OPENAI_EMBEDDING_API_KEY"),  
+                endpoint =os.getenv("AZURE_OPENAI_EMBEDDING_ENDPOINT") ,
+                deployment_name=os.getenv("AZURE_OPENAI_EMBED_DEPLOYMENT_NAME"),
+                service_id="embedding"
+                )
+    arief_kernel.add_service(embedding_service)
+    arief_kernel.add_plugin(AiSearchPlugin(arief_kernel), plugin_name="AISearch") 
+
+    
+    #arief alternative method of using the chat completion service
+    #response = await chat_completion_service.get_chat_message_content(chat_history=chat_history,settings=execution_settings,kernel=arief_kernel)
 
 
     # Challenge 06- Semantic kernel filters
@@ -148,6 +163,38 @@ async def process_message(user_input):
     # chat_history.add_user_message(user_input)
     # chat_history.add_assistant_message(str(result))
 
+    # Define the prompt template
+    prompt = """
+        {{$chat_history}}
+        {{$user_input}}
+    """
+
+
+    # prompt_template_config = PromptTemplateConfig(
+    # template=prompt,
+    # name="chat",
+    # template_format="semantic-kernel",
+    # input_variables=[
+    #     InputVariable(name="user_input", description="The user input", is_required=True),
+    #     InputVariable(name="history", description="The conversation history", is_required=True),
+    # ],
+    # execution_settings=execution_settings,
+    # )
+
+    chat_function = arief_kernel.add_function(
+        prompt="{{$chat_history}}{{$user_input}}",
+        plugin_name="ChatBot",
+        function_name="chat",
+    )
+
+    
+    arguments["user_input"] = user_input
+    arguments["chat_history"] = chat_history
+    response = await arief_kernel.invoke(chat_function, arguments=arguments)
+    chat_history.add_user_message(user_input)
+    chat_history.add_assistant_message(str(response))
+
+     
 
     return response
 

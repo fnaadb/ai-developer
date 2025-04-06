@@ -29,8 +29,9 @@ class AiSearchPlugin:
         store = AzureAISearchStore(
             api_key=os.getenv("AZURE_AI_SEARCH_KEY"),
             search_endpoint=os.getenv("AZURE_AI_SEARCH_ENDPOINT")
-        )       
-        collection: AzureAISearchCollection = store.get_collection(collection_name="employeehandbook",data_model_type=EmployeeHandbookModel)
+        )
+        #arief changed the collection name       
+        collection: AzureAISearchCollection = store.get_collection(collection_name="sk-employee-handbook",data_model_type=EmployeeHandbookModel)
 
         search_results = await collection.vectorized_search(
             vector=query_vector, options=VectorSearchOptions(vector_field_name="contentVector", top=2)    
