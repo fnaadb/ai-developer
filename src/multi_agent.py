@@ -37,9 +37,51 @@ class ApprovalTerminationStrategy(TerminationStrategy):
     """A strategy for determining when an agent should terminate."""
 
     async def should_agent_terminate(self, agent, history):
-        "Check if the agent should terminate."
-        return NotImplementedError("code to be implemented by the student")
+        """Check if the agent should terminate."""
+        return any("%APPR%" in message.content for message in history)
     
-    async def run_multi_agent(input: str):
-        "Implement the the multi-agent process."
-        return str
+async def run_multi_agent(input: str):
+    service_id ="agent"
+    # Define the Kernel
+    kernel = Kernel()
+    kernel.add_service(AzureChatCompletion(service_id=service_id))
+    settings = kernel.get_prompt_execution_settings_from_service_id(service_id=service_id)
+    settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
+
+    # Create agents
+    BA_agent = ChatCompletionAgent(
+    id="agent", 
+    kernel=kernel, 
+    name=BA_AGENT_NAME, 
+    instructions=BA_AGENT_INSTRUCTIONS,
+    )
+
+    SE_agent = ChatCompletionAgent(
+    id="agent", 
+    kernel=kernel, 
+    name=SE_AGENT_NAME, 
+    instructions=SE_AGENT_INSTRUCTIONS,
+    )
+
+    PO_agent = ChatCompletionAgent(
+    id="agent", 
+    kernel=kernel, 
+    name=PO_AGENT_NAME, 
+    instructions=PO_AGENT_INSTRUCTIONS,
+    )
+
+    # Chat agent group and termination strategy
+    chat = AgentGroupChat(
+        agents=[BA_agent, SE_agent, PO_agent],
+        termination_strategy=ApprovalTerminationStrategy(agents=[PO_agent], maximum_iterations=10),
+    )
+    logger.info(f"User Input is : {input}")
+    await chat.add_chat_message(ChatMessageContent(role=AuthorRole.USER, content=input))
+
+    # Collect responses
+    responses = []
+    async for response in chat.invoke():
+        responses.append({"role": response.role.value, "message": response.content})
+    
+    logger.info("Multi-agent conversation complete.")
+    return responses

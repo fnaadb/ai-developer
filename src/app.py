@@ -2,7 +2,7 @@ import streamlit as st
 import asyncio
 import logging
 from chat import process_message, reset_chat_history
-#from multi_agent import run_multi_agent
+from multi_agent import run_multi_agent
 
 # configure logging
 logging.basicConfig(level=logging.INFO)

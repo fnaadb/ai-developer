@@ -8,7 +8,7 @@ from semantic_kernel.connectors.openapi_plugin import OpenAPIFunctionExecutionPa
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.functions import KernelArguments
 from openai import AzureOpenAI
-from semantic_kernel.connectors.ai.azure_ai_inference import AzureTextEmbedding
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, AzureTextToImage, AzureTextEmbedding
 #from semantic_kernel.template_engine import PromptTemplateConfig,InputVariable
 
 
