@@ -9,10 +9,14 @@ from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.functions import KernelArguments
 from openai import AzureOpenAI
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, AzureTextToImage, AzureTextEmbedding
+from app_insights_tracing import get_logger, enable_telemetry
+from opentelemetry import trace
 #from semantic_kernel.template_engine import PromptTemplateConfig,InputVariable
 
 
-
+logger = get_logger(__name__)
+enable_telemetry(True)
+tracer = trace.get_tracer(__name__)
 import os
 #arief
 #from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase, PromptExecutionSettings
@@ -46,7 +50,7 @@ chat_history.add_system_message(system_message)
 # Initialize the kernel and add the Azure AI Foundry Chat Completion service
 #chat_completion_service : AzureChatCompletion = None
 #client : ChatCompletionClientBase = None
-
+@tracer.start_as_current_span(name="kernel_initialization")
 def initialize_kernel():
     kernel = Kernel()
 
@@ -70,7 +74,7 @@ def initialize_kernel():
     return kernel
 
 
-
+@tracer.start_as_current_span(name="chat_completion")
 async def process_message(user_input):
     logger.info(f"Processing user message: {user_input}")
     arief_kernel = initialize_kernel()
@@ -190,6 +194,7 @@ async def process_message(user_input):
     
     arguments["user_input"] = user_input
     arguments["chat_history"] = chat_history
+    
     response = await arief_kernel.invoke(chat_function, arguments=arguments)
     chat_history.add_user_message(user_input)
     chat_history.add_assistant_message(str(response))

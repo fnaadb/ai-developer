@@ -11,6 +11,13 @@ from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
 from semantic_kernel.contents.utils.author_role import AuthorRole
 from semantic_kernel.kernel import Kernel
+from app_insights_tracing import get_logger, enable_telemetry
+from opentelemetry import trace
+
+
+logger = get_logger(__name__)
+enable_telemetry(True)
+tracer = trace.get_tracer(__name__)
 
 #from otlp_tracing import configure_oltp_grpc_tracing
 
@@ -40,6 +47,8 @@ class ApprovalTerminationStrategy(TerminationStrategy):
         """Check if the agent should terminate."""
         return any("%APPR%" in message.content for message in history)
     
+
+@tracer.start_as_current_span(name="multi_agent")    
 async def run_multi_agent(input: str):
     service_id ="agent"
     # Define the Kernel

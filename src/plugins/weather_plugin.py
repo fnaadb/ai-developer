@@ -1,13 +1,20 @@
 from typing import Annotated
 import aiohttp
 from semantic_kernel.functions import kernel_function
+from app_insights_tracing import get_logger, enable_telemetry
+import logging
+from opentelemetry import trace
+from dotenv import load_dotenv
 
 
+logger = get_logger(__name__)
+enable_telemetry(True)
+tracer = trace.get_tracer(__name__)
 
 class WeatherPlugin:
     """A Weather Plugin to get weather data from the Open-Meteo API."""
 
-
+    @tracer.start_as_current_span(name="weather_plugin")
     @kernel_function(description="Gets the forecast for a given latitude, longitude and number of days. Can forecast up to 16 days in the future..")
     async def get_weather_forecast(self,
                                    latitude: Annotated[str, "The latitude of the location."],
