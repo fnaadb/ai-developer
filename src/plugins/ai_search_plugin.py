@@ -5,7 +5,15 @@ from semantic_kernel.connectors.memory.azure_ai_search import AzureAISearchColle
 from semantic_kernel.data.vector_search import VectorSearchOptions
 from semantic_kernel import Kernel
 
+from app_insights_tracing import get_logger, enable_telemetry
+import logging
+from opentelemetry import trace
+
 from models.employee_handbook_model import EmployeeHandbookModel
+
+logger = get_logger(__name__)
+enable_telemetry(True)
+tracer = trace.get_tracer(__name__)
 
 class AiSearchPlugin:
     def __init__(self, kernel: Kernel):
@@ -18,6 +26,8 @@ class AiSearchPlugin:
                 response = await self.client.generate_embeddings([query])
                 return response[0]
     
+
+    @tracer.start_as_current_span(name="ai_search_plugin")
     @kernel_function(description="Gets query for Employee handbook data, data consists of mission, values,performance review, workplace safety, workplace violence, Training, Privacy, whistleblower policy and data security, job roles", name="get_employeehandbook_response")
     async def get_employeehandbook_response(self, query_str: Annotated[str, "Query about employee handbook"]) -> Annotated[str, "Response for the query"]:     
          # Generate a vector for your search text.
