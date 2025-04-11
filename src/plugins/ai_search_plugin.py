@@ -28,10 +28,11 @@ class AiSearchPlugin:
     
 
     @tracer.start_as_current_span(name="ai_search_plugin")
-    @kernel_function(description="Gets query for Employee handbook data, data consists of mission, values,performance review, workplace safety, workplace violence, Training, Privacy, whistleblower policy and data security, job roles", name="get_employeehandbook_response")
+    @kernel_function(description="for Contoso Gets query for Employee handbook data, data consists of mission, values,performance review, workplace safety, workplace violence, Training, Privacy, whistleblower policy and data security, job roles", name="get_employeehandbook_response")
     async def get_employeehandbook_response(self, query_str: Annotated[str, "Query about employee handbook"]) -> Annotated[str, "Response for the query"]:     
          # Generate a vector for your search text.
         # Just showing a placeholder method here for brevity.
+        
         query_vector = await self.generate_vector(query_str)
         # query_vector = query_vector.embedding
 
@@ -51,6 +52,7 @@ class AiSearchPlugin:
         async for result in search_results.results:
               result_list.append(result)
               print(
-                    f"{result.record.parent_id} (with {result.record.title}, and content: {result.record.content})"
+                    f"(with {result.record.title}, and content: {result.record.content})"
               )
         return result_list
+    

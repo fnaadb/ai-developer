@@ -26,7 +26,7 @@ class EmployeeHandbookModel(BaseModel):
     #arief, no chunk id, replace with id as well as parent_id is optional
     #chunk_id: Annotated[str, VectorStoreRecordKeyField]
     id: Annotated[str, VectorStoreRecordKeyField]
-    parent_id: Annotated[str | None, VectorStoreRecordDataField()] = None
+    #parent_id: Annotated[str | None, VectorStoreRecordDataField()] = None
     content: Annotated[str, VectorStoreRecordDataField()]
     title: Annotated[str, VectorStoreRecordDataField()]
     url: Annotated[str, VectorStoreRecordDataField()]
