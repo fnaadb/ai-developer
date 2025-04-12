@@ -31,6 +31,7 @@ from plugins.geo_plugin import GeoPlugin
 from plugins.weather_plugin import WeatherPlugin
 from plugins.ai_search_plugin import AiSearchPlugin
 from plugins.image_plugin import ImagePlugin
+from plugins.fabric_agent_plugin import FabricPlugin
 
 
 
@@ -83,12 +84,11 @@ async def process_message(user_input):
     execution_settings.function_choice_behavior = FunctionChoiceBehavior.Auto()
     arguments = KernelArguments(settings=execution_settings)
 
-       # Challenge 03 - Add Time Plugin
-    # Placeholder for Time plugin
-    # Challenge 03 - Add Time Plugin/GeoPlugin
+    #add all plugins
     arief_kernel.add_plugin(GeoPlugin(), plugin_name="GeoCoding",)
     arief_kernel.add_plugin(TimePlugin(), plugin_name="Time",)
     arief_kernel.add_plugin(WeatherPlugin(),plugin_name="Weather",)
+    arief_kernel.add_plugin(FabricPlugin(), plugin_name="Fabric")
    
      
 
