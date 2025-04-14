@@ -19,6 +19,9 @@ from opentelemetry import trace
 # enable_telemetry(True)
 # tracer = trace.get_tracer(__name__)
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
     
 
