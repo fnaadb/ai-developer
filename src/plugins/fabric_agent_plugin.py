@@ -1,5 +1,5 @@
 import asyncio
-from azure.identity.aio import DefaultAzureCredential
+from azure.identity.aio import DefaultAzureCredential, AzureCliCredential
 #from azure.core.credentials import TokenRequestContext
 
 from semantic_kernel.agents import AzureAIAgent, AzureAIAgentSettings
@@ -23,10 +23,10 @@ from opentelemetry import trace
 
 from semantic_kernel import Kernel
 
-logger = get_logger(__name__)
-enable_telemetry(True)
+#logger = get_logger(__name__)
+#enable_telemetry(True)
 tracer = trace.get_tracer(__name__)
-
+logging.basicConfig(level=logging.INFO)
 class FabricPlugin:
     
 
@@ -36,24 +36,25 @@ class FabricPlugin:
         
         
         try:
-            credential = DefaultAzureCredential()
-            print('{}.get_token succeeded'.format(await credential.get_token()))
-            #print(f"Token: {token.token}")
+            credential = AzureCliCredential()
+            print('{}.get_token succeeded'.format(await credential.get_token("https://management.azure.com/.default")))
+            print(f"Token: {credential}")
         except Exception as ex:
             print(f"Authentication failed: {ex}")
         
 
         async with (
-            DefaultAzureCredential() as creds,
-            #AzureAIAgent.create_client(credential=creds,sconn_str=os.getenv("AIPROJECT_CONNECTION_STRING_KEY")) as client,
-            AzureAIAgent.create_client(credential=creds,conn_str="eastus2.api.azureml.ms;713a6867-f4a6-47da-8425-c1ea4c0ff132;ariefml;foundryworkshop") as client,
+            
+            AzureCliCredential() as creds,
+            AzureAIAgent.create_client(credential=creds,sconn_str=os.getenv("AIPROJECT_CONNECTION_STRING_KEY")) as client,
+            
         ):
         # 1. Retrieve the agent definition based on the `agent_id`
         # Replace the "your-agent-id" with the actual agent ID
         # you want to use.
             agent_definition = await client.agents.get_agent(
-            #agent_id=os.getenv("FABRIC_AGENT_ID"),
-            agent_id="asst_8lI50aBivLP88gawvD9qJHxl",
+            agent_id=os.getenv("FABRIC_AGENT_ID"),
+           
             )
 
         # 2. Create a Semantic Kernel agent for the Azure AI agent

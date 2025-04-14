@@ -15,6 +15,8 @@ logger = get_logger(__name__)
 enable_telemetry(True)
 tracer = trace.get_tracer(__name__)
 
+logging.basicConfig(level=logging.INFO)
+
 class AiSearchPlugin:
     def __init__(self, kernel: Kernel):
         if not kernel.get_service("embedding"):
